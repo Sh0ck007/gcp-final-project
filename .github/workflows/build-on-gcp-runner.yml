@@ -1,0 +1,22 @@
+name: Build on GCP self-hosted runner
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          echo "Building on $(hostname) at $(date)"
+          uname -a
+      - name: Install deps
+        run: npm ci || npm install
+      - name: Smoke test
+        run: |
+          (npm start &) && sleep 3
+          curl -fsS http://localhost:3000 | head -c 200
+          pkill -f 'node src/index.js' || true
